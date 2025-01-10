@@ -34,15 +34,20 @@ echo "Script started executing at: $(date)" | tee -a $LOG_FILE
 
 CHECK_ROOT
 
-dnf install mysql-server -y &>>$LOG_FILE
-VALIDATE $? "Installing MySQL Server"
+systemctl status mysqld &>>$LOG_FILE
+if [$? -ne 0 ]
+then
+    dnf install mysql-server -y &>>$LOG_FILE
+    VALIDATE $? "Installing MySQL Server"
 
-systemctl enable mysqld &>>$LOG_FILE
-VALIDATE $? "Enable MySQL Server"
+    systemctl enable mysqld &>>$LOG_FILE
+    VALIDATE $? "Enable MySQL Server"
 
-systemctl start mysqld &>>$LOG_FILE
-VALIDATE $? "Started MySQL Server"
-
+    systemctl start mysqld &>>$LOG_FILE
+    VALIDATE $? "Started MySQL Server"
+else
+    echo -e "MySQL is already installed... $Y SKIPPING $N" | tee -a $LOG_FILE
+fi
 mysql -h mysql.advik.fun -u root -pExpenseApp@1 -e 'show databases;' &>>$LOG_FILE
 if [ $? -ne 0 ]
 then
@@ -52,3 +57,8 @@ then
 else
     echo -e "MySQL root password is already setup... $Y SKIPPING $N" | tee -a $LOG_FILE
 fi
+
+# Assignment
+# check MySQL Server is installed or not, enabled or not, started or not
+# if installed  then skip the installation.
+# implement the above things
